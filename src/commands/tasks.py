@@ -1,3 +1,9 @@
+"""
+FileName : projects.py
+FileInfo : This file contains the project management
+           commands for the TMAS Academy Admin Bot.
+"""
+
 import discord
 from discord import app_commands
 from discord.ext import commands
