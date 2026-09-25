@@ -1,6 +1,6 @@
 """
-FileName : projects.py
-FileInfo : This file contains the project management
+FileName : tasks.py
+FileInfo : This file contains the task management
            commands for the TMAS Academy Admin Bot.
 """
 
