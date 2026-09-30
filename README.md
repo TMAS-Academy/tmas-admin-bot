@@ -2,7 +2,7 @@
 
 The **TMAS Academy Admin Bot** is an internal Discord-based management system designed to support the organization's projects, tasks, team assignments, deadlines, and volunteer-hour tracking.
 
-The bot provides a centralized workflow for managing organizational work directly within the TMAS Academy Discord server.
+The bot provides a centralized workflow for managing organizational work directly within TMAS Academy's administrative Discord server.
 
 ---
 
