@@ -12,8 +12,13 @@ bot = commands.Bot(
 
 async def setup_hook():
     await initialize_database()
+
     await bot.load_extension("commands.projects")
     await bot.load_extension("commands.create_task")
+    await bot.load_extension("commands.task")
+    await bot.load_extension("commands.task_status")
+    await bot.load_extension("commands.complete_task")
+
     guild = discord.Object(id=GUILD_ID)
     bot.tree.copy_global_to(guild=guild)
     await bot.tree.sync(guild=guild)
