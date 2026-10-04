@@ -13,6 +13,7 @@ bot = commands.Bot(
 async def setup_hook():
     await initialize_database()
 
+    await bot.load_extension("commands.create_project")
     await bot.load_extension("commands.projects")
     await bot.load_extension("commands.create_task")
     await bot.load_extension("commands.task")
