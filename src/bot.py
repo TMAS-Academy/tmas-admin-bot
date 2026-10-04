@@ -22,6 +22,7 @@ async def setup_hook():
     await bot.load_extension("commands.my_tasks")
     await bot.load_extension("commands.log_hours")
     await bot.load_extension("commands.my_hours")
+    await bot.load_extension("commands.project_hours")
 
     guild = discord.Object(id=GUILD_ID)
     bot.tree.copy_global_to(guild=guild)
