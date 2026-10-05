@@ -9,13 +9,13 @@ FileInfo : This file contains the command for logging volunteer
 """
 
 from typing import Optional
+from datetime import datetime
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 import aiosqlite
 from database import DATABASE_PATH
-
 
 class LogHours(commands.Cog):
 
@@ -45,6 +45,16 @@ class LogHours(commands.Cog):
         if hours <= 0:
             await interaction.response.send_message(
                 "❌ Hours must be greater than 0."
+            )
+            return
+
+        try:
+            parsed_date = datetime.strptime(date, "%Y-%m-%d")
+            if parsed_date.strftime("%Y-%m-%d") != date:
+                raise ValueError
+        except ValueError:
+            await interaction.response.send_message(
+                "❌ Invalid date. Use the format YYYY-MM-DD."
             )
             return
 
