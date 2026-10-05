@@ -43,6 +43,12 @@ class ProjectHours(commands.Cog):
         interaction: discord.Interaction,
         project_id: int
     ):
+        if not interaction.user_guild_permissions.manage_guild:
+            await interaction.response_send_message(
+                "❌ You do not have permission to view project hours."
+            )
+            return
+        
         async with aiosqlite.connect(DATABASE_PATH) as db:
             cursor = await db.execute(
                 """
