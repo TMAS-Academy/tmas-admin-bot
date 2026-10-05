@@ -44,7 +44,16 @@ class MyTasks(commands.Cog):
                 JOIN projects
                     ON tasks.project_id = projects.id
                 WHERE tasks.assignee_id = ?
-                ORDER BY tasks.id
+                ORDER BY
+                    CASE tasks.priority
+                        WHEN 'High' THEN 1
+                        WHEN 'Medium' THEN 2
+                        WHEN 'Low' THEN 3
+                        ELSE 4
+                    END,
+                    tasks.deadline IS NULL,
+                    tasks.deadline,
+                    tasks.id
                 """,
                 (interaction.user.id,)
             )
