@@ -331,7 +331,7 @@ A `.env.example` file should be maintained to document required configuration va
 
 ```bash
 git clone <repository-url>
-cd tmas-academy-admin-bot
+cd tmas-admin-bot
 ```
 
 ### 2. Create a Virtual Environment
@@ -419,7 +419,7 @@ git checkout -b feature/<feature-name>
 
 ```bash
 git add .
-git commit -m "Add <feature>"
+git commit -m "feat: add <feature>"
 ```
 
 ### Pushing the Branch
