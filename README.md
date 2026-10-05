@@ -1,49 +1,50 @@
 # TMAS Academy Admin Bot
 
-The **TMAS Academy Admin Bot** is an internal Discord-based management system designed to support the organization's projects, tasks, team assignments, deadlines, and volunteer-hour tracking.
+An internal Discord management system for **TMAS Academy** that brings project management, task tracking, team assignments, deadlines, and volunteer-hour tracking into one centralized workflow.
 
-The bot provides a centralized workflow for managing organizational work directly within TMAS Academy's administrative Discord server.
+Built with **Python, discord.py, and SQLite**, the bot uses a modular architecture that makes individual features easy to develop, test, and maintain.
 
 ---
 
 ## Overview
 
-TMAS Academy operates across multiple teams and projects, including software engineering, academic writing, marketing, outreach, and other organizational initiatives.
+The TMAS Academy Admin Bot is designed to support the organization's internal operations across software engineering, academic writing, marketing, outreach, and other projects.
 
-The Admin Bot provides structure around that work by allowing administrators and team members to:
+The bot provides functionality for:
 
-- Create and manage projects
-- Create and assign tasks
-- Track task status and priority
-- Set deadlines and estimated work hours
-- View individual task details
-- Mark tasks as completed
-- Track volunteer hours
-- Associate work with specific projects
-- Maintain persistent organizational records
+- Creating and managing projects
+- Creating and assigning tasks
+- Tracking task status and priority
+- Setting deadlines and estimated work hours
+- Viewing individual task details
+- Completing tasks and recording completion timestamps
+- Viewing assigned tasks
+- Recording volunteer hours
+- Viewing personal volunteer hours
+- Viewing project-level volunteer hours
+- Maintaining persistent organizational records
 
-The system is designed to be modular and extensible as TMAS Academy grows.
+The system is designed to provide a structured alternative to managing organizational work entirely through Discord messages, spreadsheets, and manual checklists.
 
 ---
 
-## Core Features
+## Features
 
 ### Project Management
 
-Projects provide a central organizational unit for related work.
+Projects serve as the organizational unit for related work.
 
-Planned functionality includes:
+| Command | Description |
+|---|---|
+| `/create-project` | Create a new project |
+| `/projects` | List all projects |
+| `/project` | View information about a specific project |
 
-- Creating projects
-- Viewing all projects
-- Viewing individual project details
-- Associating tasks with projects
-- Tracking work performed within a project
-- Tracking volunteer hours by project
+Projects can contain multiple tasks and associated volunteer-hour entries.
 
 ### Task Management
 
-Tasks represent individual pieces of work assigned to TMAS Academy team members.
+Tasks represent individual pieces of work assigned to TMAS Academy contributors.
 
 Each task can contain:
 
@@ -59,7 +60,7 @@ Each task can contain:
 - Creation timestamp
 - Completion timestamp
 
-Supported task statuses:
+#### Task Statuses
 
 ```text
 Not Started
@@ -68,7 +69,7 @@ Blocked
 Completed
 ```
 
-Supported priorities:
+#### Task Priorities
 
 ```text
 Low
@@ -78,11 +79,11 @@ High
 
 ### Task Assignment
 
-Tasks can be assigned to individual Discord users.
+Tasks can be assigned directly to individual Discord users.
 
-This provides more detailed accountability than organizational roles alone.
+This separates **organizational roles** from **specific responsibilities**.
 
-For example, a team member may belong to:
+For example, a contributor may belong to the:
 
 ```text
 Marketing Team
@@ -97,13 +98,28 @@ Create Instagram announcement
 Research partnership opportunities
 ```
 
-This separates **organizational roles** from **specific responsibilities**.
+### Task Tracking
+
+The bot provides commands for viewing and managing individual tasks:
+
+| Command | Description |
+|---|---|
+| `/create-task` | Create and assign a task |
+| `/task` | View detailed task information |
+| `/my-tasks` | View tasks assigned to yourself |
+| `/task-status` | Update a task's status |
+| `/complete-task` | Mark a task as completed |
+
+`/my-tasks` prioritizes tasks by **priority and deadline**, making it easier for contributors to identify what should be worked on next.
 
 ### Deadline Tracking
 
-Tasks can optionally include deadlines and estimated hours.
+Tasks can optionally include:
 
-This allows the organization to track:
+- A deadline
+- Estimated hours
+
+This provides a structured workflow for understanding:
 
 ```text
 What needs to be done
@@ -114,18 +130,18 @@ When it is due
         ↓
 How much work is expected
         ↓
-Whether it has been completed
+Whether it is complete
 ```
 
 ### Task Completion
 
 Tasks can be explicitly marked as completed.
 
-When a task is completed, the system records its completion timestamp, creating a persistent record of completed organizational work.
+When a task is completed, the database records its completion timestamp, creating a persistent record of organizational work.
 
 ### Volunteer Hour Tracking
 
-The Admin Bot includes a volunteer-hour tracking system designed to record contributions made by TMAS Academy team members.
+The Admin Bot includes a volunteer-hour tracking system for recording contributions made by TMAS Academy team members.
 
 Hour entries can be associated with:
 
@@ -136,15 +152,21 @@ Hour entries can be associated with:
 - Description of work
 - Date
 
-This provides a structured way to measure contributions across individual tasks and projects.
+Available commands:
+
+| Command | Description |
+|---|---|
+| `/log-hours` | Record volunteer hours |
+| `/my-hours` | View your volunteer hours |
+| `/project-hours` | View volunteer hours for a project |
+
+Project-level volunteer-hour information is restricted to users with the appropriate Discord server permissions.
 
 ---
 
-## Command System
+## Command Reference
 
-The bot uses Discord slash commands.
-
-### Project Commands
+### Projects
 
 ```text
 /create-project
@@ -152,9 +174,7 @@ The bot uses Discord slash commands.
 /project
 ```
 
-These commands provide project creation, project discovery, and project-specific information.
-
-### Task Commands
+### Tasks
 
 ```text
 /create-task
@@ -164,9 +184,7 @@ These commands provide project creation, project discovery, and project-specific
 /my-tasks
 ```
 
-These commands provide task creation, assignment, inspection, status management, and completion tracking.
-
-### Volunteer Hour Commands
+### Volunteer Hours
 
 ```text
 /log-hours
@@ -174,9 +192,7 @@ These commands provide task creation, assignment, inspection, status management,
 /project-hours
 ```
 
-These commands provide functionality for recording and reviewing volunteer contributions.
-
-> Some commands are still under active development and will be integrated as development progresses.
+All commands are implemented as Discord slash commands.
 
 ---
 
@@ -196,46 +212,49 @@ These commands provide functionality for recording and reviewing volunteer contr
 
 ## Architecture
 
-The Admin Bot follows a modular command-based architecture using Discord Cogs.
+The bot uses a modular architecture based on **Discord Cogs**, with each major command isolated into its own module.
 
 ```text
-tmas-academy-admin-bot/
+tmas-admin-bot/
 │
-├── src/
-│   ├── bot.py
-│   ├── config.py
-│   ├── database.py
+├── commands/
+│   ├── __init__.py
 │   │
-│   └── commands/
-│       ├── __init__.py
-│       │
-│       ├── projects.py
-│       ├── create_project.py
-│       ├── project.py
-│       │
-│       ├── create_task.py
-│       ├── task.py
-│       ├── task_status.py
-│       ├── complete_task.py
-│       └── my_tasks.py
+│   ├── create_project.py
+│   ├── projects.py
+│   ├── project.py
+│   │
+│   ├── create_task.py
+│   ├── task.py
+│   ├── task_status.py
+│   ├── complete_task.py
+│   └── my_tasks.py
+│   │
+│   ├── log_hours.py
+│   ├── my_hours.py
+│   └── project_hours.py
 │
-├── .env
+├── bot.py
+├── config.py
+├── database.py
+│
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
-├── README.md
-└── tmas.db
+└── README.md
 ```
 
-Each command is separated into its own module to keep the codebase organized and make individual features easier to develop, test, and maintain.
+Each command is kept in its own module so that features can be developed independently without turning the bot into a single monolithic file.
+
+The database connection and initialization logic are centralized in `database.py`, while `bot.py` handles bot startup, extension loading, and command synchronization.
 
 ---
 
 ## Database Architecture
 
-The Admin Bot uses SQLite for persistent storage.
+The bot uses **SQLite** for persistent storage.
 
-The current database is organized around three primary entities:
+The database currently consists of three primary entities:
 
 ```text
 Projects
@@ -294,9 +313,7 @@ hour_entries
 └── created_at
 ```
 
-Tasks reference projects, while hour entries can reference both tasks and projects.
-
-This allows the system to maintain relationships between:
+This structure allows the system to maintain relationships between:
 
 ```text
 Project
@@ -305,6 +322,8 @@ Task
    ↓
 Volunteer Work
 ```
+
+The database is initialized automatically when the bot starts. Required tables are created if they do not already exist.
 
 ---
 
@@ -321,7 +340,7 @@ GUILD_ID=your_discord_server_id
 
 The `.env` file must **never be committed to GitHub**.
 
-A `.env.example` file should be maintained to document required configuration variables without exposing credentials.
+A `.env.example` file is included to document the required environment variables without exposing credentials.
 
 ---
 
@@ -331,7 +350,7 @@ A `.env.example` file should be maintained to document required configuration va
 
 ```bash
 git clone <repository-url>
-cd tmas-academy-admin-bot
+cd tmas-admin-bot
 ```
 
 ### 2. Create a Virtual Environment
@@ -368,26 +387,21 @@ GUILD_ID=your_discord_server_id
 ### 5. Run the Bot
 
 ```bash
-python src/bot.py
+python bot.py
 ```
 
-The bot will initialize the database, load its command modules, connect to Discord, and synchronize its slash commands with the configured guild.
+On startup, the bot will:
 
----
-
-## Database Initialization
-
-Database initialization is handled automatically when the bot starts.
-
-The initialization process creates the required tables if they do not already exist.
-
-This allows a fresh installation to initialize its database without requiring a separate database setup process.
+1. Initialize the SQLite database
+2. Load the command modules
+3. Connect to Discord
+4. Synchronize slash commands with the configured guild
 
 ---
 
 ## Development Workflow
 
-Development follows a feature-branch workflow.
+Development follows a feature-branch and pull-request workflow.
 
 ```text
                          main
@@ -395,7 +409,7 @@ Development follows a feature-branch workflow.
              ┌────────────┼────────────┐
              │            │            │
              ▼            ▼            ▼
-      feature/tasks  feature/projects  feature/hours
+       feature/tasks  feature/projects  feature/hours
              │            │            │
              └────────────┼────────────┘
                           │
@@ -406,29 +420,37 @@ Development follows a feature-branch workflow.
                          main
 ```
 
-### Creating a Feature Branch
+### Create a Feature Branch
 
 ```bash
-git checkout main
+git switch main
 git pull origin main
-
-git checkout -b feature/<feature-name>
+git switch -c feature/<feature-name>
 ```
 
-### Committing Changes
+### Make and Commit Changes
 
 ```bash
 git add .
 git commit -m "Add <feature>"
 ```
 
-### Pushing the Branch
+### Push the Branch
 
 ```bash
 git push -u origin feature/<feature-name>
 ```
 
-A pull request can then be opened against `main`.
+Open a pull request against `main` when the feature is ready for review.
+
+### Development Guidelines
+
+- Keep changes focused on the feature being implemented.
+- Test commands locally before opening a pull request.
+- Use descriptive commit messages.
+- Avoid unnecessary modifications to shared architecture.
+- Review pull requests before merging.
+- Keep sensitive configuration out of version control.
 
 ---
 
@@ -448,7 +470,7 @@ Important organizational information should be stored persistently rather than r
 
 ### Accountability
 
-Every task should clearly communicate:
+Tasks should clearly communicate:
 
 ```text
 What needs to be done
@@ -465,37 +487,36 @@ The architecture should allow new organizational features to be added without re
 
 ---
 
-## Planned Improvements
+## Future Improvements
 
-The Admin Bot is an actively developing system.
+The core administrative workflow is implemented, but the system can continue to evolve.
 
-Potential future functionality includes:
+Potential future improvements include:
 
 - [ ] Rich Discord embeds
 - [ ] Interactive buttons and dropdowns
-- [ ] Task filtering
-- [ ] Task search
+- [ ] Task filtering and search
 - [ ] Project dashboards
 - [ ] Deadline reminders
 - [ ] Overdue task detection
 - [ ] Task statistics
+- [ ] Volunteer-hour approval workflow
 - [ ] Volunteer-hour summaries
 - [ ] Project progress summaries
-- [ ] Administrative permissions
+- [ ] More granular administrative permissions
 - [ ] Automated notifications
 - [ ] Recurring tasks
 - [ ] Reporting and analytics
 - [ ] Exportable volunteer-hour reports
-- [ ] Improved validation
 - [ ] Automated testing
 
 ---
 
-## Long-Term Architecture
+## Long-Term Vision
 
-The long-term goal is to turn the Admin Bot into a lightweight internal operations platform for TMAS Academy.
+The long-term goal is to make the Admin Bot a lightweight internal operations platform for TMAS Academy.
 
-Rather than managing organizational work across disconnected systems:
+Instead of managing organizational work across disconnected systems:
 
 ```text
 Discord Messages
@@ -505,43 +526,50 @@ Direct Messages
 Separate Project Notes
 ```
 
-the Admin Bot aims to provide a unified workflow:
+the Admin Bot provides a centralized workflow:
 
 ```text
-                         TMAS Academy
-                               │
-                         ┌─────┴─────┐
-                         │  Projects │
-                         └─────┬─────┘
-                               │
-                             Tasks
-                               │
-               ┌───────────────┼───────────────┐
-               │               │               │
-           Assignee         Deadline        Priority
-               │               │               │
-               └───────────────┼───────────────┘
-                               │
-                           Completion
-                               │
-                         Volunteer Hours
-                               │
-                         Project Reports
+                    TMAS Academy
+                         │
+                    ┌────┴────┐
+                    │ Projects│
+                    └────┬────┘
+                         │
+                       Tasks
+                         │
+          ┌──────────────┼──────────────┐
+          │              │              │
+      Assignee       Deadline       Priority
+          │              │              │
+          └──────────────┼──────────────┘
+                         │
+                     Completion
+                         │
+                   Volunteer Hours
+                         │
+                  Project Reporting
 ```
 
-The system is intended to scale alongside the organization's projects, contributors, and operational needs.
+The system is intended to scale alongside TMAS Academy's projects, contributors, and operational needs.
 
 ---
 
 ## Project Status
 
-**Status:** Active Development
+**Status: Core Functionality Complete**
 
-The database architecture and core task-management functionality have been implemented.
+The Admin Bot currently provides the core functionality required for:
 
-Project-management and volunteer-hour functionality are being developed and integrated as the system progresses toward a complete internal release.
+- Project management
+- Task management
+- Task assignment
+- Task status tracking
+- Task completion
+- Deadline and priority tracking
+- Volunteer-hour tracking
+- Persistent SQLite storage
 
-This README documents both the current architecture and the intended feature set of the completed system.
+The architecture is now in a stable state for continued feature development and future improvements.
 
 ---
 
@@ -557,8 +585,8 @@ Before beginning a feature:
 4. Test the feature locally.
 5. Commit using a descriptive commit message.
 6. Push the feature branch.
-7. Open a pull request.
-8. Review and merge the changes into `main`.
+7. Open a pull request when appropriate.
+8. Review the changes before merging into `main`.
 
 When working on an isolated command, avoid unnecessarily modifying shared architecture files.
 
