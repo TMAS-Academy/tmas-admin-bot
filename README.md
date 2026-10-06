@@ -2,7 +2,7 @@
 
 An internal Discord management system for **TMAS Academy** that brings project management, task tracking, team assignments, deadlines, and volunteer-hour tracking into one centralized workflow.
 
-Built with **Python, discord.py, and SQLite**, the bot uses a modular architecture that makes individual features easy to develop, test, and maintain.
+Built with **Python, discord.py, PostgreSQL, and Supabase**, the bot uses a modular architecture that makes individual features easy to develop, test, and maintain.
 
 ---
 
@@ -198,12 +198,15 @@ All commands are implemented as Discord slash commands.
 
 ## Technology Stack
 
+## Technology Stack
+
 | Technology | Purpose |
 |---|---|
 | **Python** | Core programming language |
 | **discord.py** | Discord bot framework |
-| **SQLite** | Persistent database |
-| **aiosqlite** | Asynchronous SQLite access |
+| **PostgreSQL** | Persistent relational database |
+| **Supabase** | Hosted PostgreSQL database platform |
+| **asyncpg** | Asynchronous PostgreSQL driver |
 | **python-dotenv** | Environment variable management |
 | **Git** | Version control |
 | **GitHub** | Source control and collaboration |
@@ -217,31 +220,30 @@ The bot uses a modular architecture based on **Discord Cogs**, with each major c
 ```text
 tmas-admin-bot/
 │
-├── commands/
-│   ├── __init__.py
+├── src/
+│   ├── commands/
+│   │   ├── __init__.py
+│   │   ├── create_project.py
+│   │   ├── projects.py
+│   │   ├── project.py
+│   │   ├── create_task.py
+│   │   ├── task.py
+│   │   ├── task_status.py
+│   │   ├── complete_task.py
+│   │   ├── my_tasks.py
+│   │   ├── log_hours.py
+│   │   ├── my_hours.py
+│   │   └── project_hours.py
 │   │
-│   ├── create_project.py
-│   ├── projects.py
-│   ├── project.py
-│   │
-│   ├── create_task.py
-│   ├── task.py
-│   ├── task_status.py
-│   ├── complete_task.py
-│   └── my_tasks.py
-│   │
-│   ├── log_hours.py
-│   ├── my_hours.py
-│   └── project_hours.py
-│
-├── bot.py
-├── config.py
-├── database.py
+│   ├── bot.py
+│   ├── config.py
+│   └── database.py
 │
 ├── .env.example
 ├── .gitignore
 ├── requirements.txt
-└── README.md
+├── README.md
+└── LICENSE
 ```
 
 Each command is kept in its own module so that features can be developed independently without turning the bot into a single monolithic file.
@@ -252,7 +254,7 @@ The database connection and initialization logic are centralized in `database.py
 
 ## Database Architecture
 
-The bot uses **SQLite** for persistent storage.
+The bot uses **PostgreSQL** for persistent storage, hosted through **Supabase**.
 
 The database currently consists of three primary entities:
 
@@ -323,7 +325,7 @@ Task
 Volunteer Work
 ```
 
-The database is initialized automatically when the bot starts. Required tables are created if they do not already exist.
+The PostgreSQL database is initialized automatically when the bot starts. Required tables are created if they do not already exist.
 
 ---
 
@@ -336,6 +338,7 @@ Create a `.env` file containing:
 ```env
 DISCORD_TOKEN=your_discord_bot_token
 GUILD_ID=your_discord_server_id
+DATABASE_URL=your_postgresql_connection_string
 ```
 
 The `.env` file must **never be committed to GitHub**.
@@ -387,15 +390,16 @@ GUILD_ID=your_discord_server_id
 ### 5. Run the Bot
 
 ```bash
-python bot.py
+python src/bot.py
 ```
 
 On startup, the bot will:
 
-1. Initialize the SQLite database
-2. Load the command modules
-3. Connect to Discord
-4. Synchronize slash commands with the configured guild
+1. Initialize the PostgreSQL connection pool
+2. Create the required database tables if they do not already exist
+3. Load the command modules
+4. Connect to Discord
+5. Synchronize slash commands with the configured guild
 
 ---
 
@@ -567,7 +571,7 @@ The Admin Bot currently provides the core functionality required for:
 - Task completion
 - Deadline and priority tracking
 - Volunteer-hour tracking
-- Persistent SQLite storage
+- Persistent PostgreSQL storage through Supabase
 
 The architecture is now in a stable state for continued feature development and future improvements.
 
