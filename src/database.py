@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+from config import DATABASE_URL
 _pool = None
 
 async def initialize_database():
