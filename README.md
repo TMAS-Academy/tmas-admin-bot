@@ -2,7 +2,7 @@
 
 An internal Discord management system for **TMAS Academy** that brings project management, task tracking, team assignments, deadlines, and volunteer-hour tracking into one centralized workflow.
 
-Built with **Python, discord.py, PostgreSQL, and Supabase**, the bot uses a modular architecture that makes individual features easy to develop, test, and maintain.
+Built with **Python, discord.py, PostgreSQL, Supabase, and Railway**, the bot uses a modular architecture that makes individual features easy to develop, test, deploy, and maintain.
 
 ---
 
@@ -12,19 +12,19 @@ The TMAS Academy Admin Bot is designed to support the organization's internal op
 
 The bot provides functionality for:
 
-- Creating and managing projects
-- Creating and assigning tasks
-- Tracking task status and priority
-- Setting deadlines and estimated work hours
-- Viewing individual task details
-- Completing tasks and recording completion timestamps
-- Viewing assigned tasks
-- Recording volunteer hours
-- Viewing personal volunteer hours
-- Viewing project-level volunteer hours
-- Maintaining persistent organizational records
+* Creating and managing projects
+* Creating and assigning tasks
+* Tracking task status and priority
+* Setting deadlines and estimated work hours
+* Viewing individual task details
+* Completing tasks and recording completion timestamps
+* Viewing assigned tasks
+* Recording volunteer hours
+* Viewing personal volunteer hours
+* Viewing project-level volunteer hours
+* Maintaining persistent organizational records
 
-The system is designed to provide a structured alternative to managing organizational work entirely through Discord messages, spreadsheets, and manual checklists.
+The system provides a structured alternative to managing organizational work entirely through Discord messages, spreadsheets, and manual checklists.
 
 ---
 
@@ -34,11 +34,11 @@ The system is designed to provide a structured alternative to managing organizat
 
 Projects serve as the organizational unit for related work.
 
-| Command | Description |
-|---|---|
-| `/create-project` | Create a new project |
-| `/projects` | List all projects |
-| `/project` | View information about a specific project |
+| Command           | Description                               |
+| ----------------- | ----------------------------------------- |
+| `/create-project` | Create a new project                      |
+| `/projects`       | List all projects                         |
+| `/project`        | View information about a specific project |
 
 Projects can contain multiple tasks and associated volunteer-hour entries.
 
@@ -48,17 +48,17 @@ Tasks represent individual pieces of work assigned to TMAS Academy contributors.
 
 Each task can contain:
 
-- Title
-- Description
-- Assignee
-- Project
-- Status
-- Priority
-- Deadline
-- Estimated hours
-- Creator
-- Creation timestamp
-- Completion timestamp
+* Title
+* Description
+* Assignee
+* Project
+* Status
+* Priority
+* Deadline
+* Estimated hours
+* Creator
+* Creation timestamp
+* Completion timestamp
 
 #### Task Statuses
 
@@ -102,13 +102,13 @@ Research partnership opportunities
 
 The bot provides commands for viewing and managing individual tasks:
 
-| Command | Description |
-|---|---|
-| `/create-task` | Create and assign a task |
-| `/task` | View detailed task information |
-| `/my-tasks` | View tasks assigned to yourself |
-| `/task-status` | Update a task's status |
-| `/complete-task` | Mark a task as completed |
+| Command          | Description                     |
+| ---------------- | ------------------------------- |
+| `/create-task`   | Create and assign a task        |
+| `/task`          | View detailed task information  |
+| `/my-tasks`      | View tasks assigned to yourself |
+| `/task-status`   | Update a task's status          |
+| `/complete-task` | Mark a task as completed        |
 
 `/my-tasks` prioritizes tasks by **priority and deadline**, making it easier for contributors to identify what should be worked on next.
 
@@ -116,8 +116,8 @@ The bot provides commands for viewing and managing individual tasks:
 
 Tasks can optionally include:
 
-- A deadline
-- Estimated hours
+* A deadline
+* Estimated hours
 
 This provides a structured workflow for understanding:
 
@@ -145,19 +145,19 @@ The Admin Bot includes a volunteer-hour tracking system for recording contributi
 
 Hour entries can be associated with:
 
-- A user
-- A task
-- A project
-- Number of hours
-- Description of work
-- Date
+* A user
+* A task
+* A project
+* Number of hours
+* Description of work
+* Date
 
 Available commands:
 
-| Command | Description |
-|---|---|
-| `/log-hours` | Record volunteer hours |
-| `/my-hours` | View your volunteer hours |
+| Command          | Description                        |
+| ---------------- | ---------------------------------- |
+| `/log-hours`     | Record volunteer hours             |
+| `/my-hours`      | View your volunteer hours          |
 | `/project-hours` | View volunteer hours for a project |
 
 Project-level volunteer-hour information is restricted to users with the appropriate Discord server permissions.
@@ -198,28 +198,28 @@ All commands are implemented as Discord slash commands.
 
 ## Technology Stack
 
-## Technology Stack
-
-| Technology | Purpose |
-|---|---|
-| **Python** | Core programming language |
-| **discord.py** | Discord bot framework |
-| **PostgreSQL** | Persistent relational database |
-| **Supabase** | Hosted PostgreSQL database platform |
-| **asyncpg** | Asynchronous PostgreSQL driver |
-| **python-dotenv** | Environment variable management |
-| **Git** | Version control |
-| **GitHub** | Source control and collaboration |
+| Technology                  | Purpose                                                    |
+| --------------------------- | ---------------------------------------------------------- |
+| **Python**                  | Core programming language                                  |
+| **discord.py**              | Discord bot framework                                      |
+| **PostgreSQL**              | Persistent relational database                             |
+| **Supabase**                | Hosted PostgreSQL database platform                        |
+| **Supabase Session Pooler** | IPv4-compatible database connection for the production bot |
+| **asyncpg**                 | Asynchronous PostgreSQL driver                             |
+| **python-dotenv**           | Local environment variable management                      |
+| **Railway**                 | Production hosting and deployment                          |
+| **Git**                     | Version control                                            |
+| **GitHub**                  | Source control and collaboration                           |
 
 ---
 
 ## Architecture
 
-The bot uses a modular architecture based on **Discord Cogs**, with each major command isolated into its own module.
+The bot uses a modular architecture based on separate command extensions, with each major command isolated into its own module.
 
 ```text
 tmas-admin-bot/
-│
+
 ├── src/
 │   ├── commands/
 │   │   ├── __init__.py
@@ -248,7 +248,53 @@ tmas-admin-bot/
 
 Each command is kept in its own module so that features can be developed independently without turning the bot into a single monolithic file.
 
-The database connection and initialization logic are centralized in `database.py`, while `bot.py` handles bot startup, extension loading, and command synchronization.
+The database connection and initialization logic are centralized in `database.py`, while `bot.py` handles bot startup, extension loading, and slash-command synchronization.
+
+---
+
+## Production Architecture
+
+The Admin Bot is deployed as a persistent production service on **Railway**.
+
+```text
+                    TMAS Academy
+                         │
+                         ▼
+                  Discord Server
+                         │
+                         ▼
+                  Railway Service
+                         │
+                  Python + discord.py
+                         │
+                         ▼
+              Supabase Session Pooler
+                         │
+                         ▼
+                  PostgreSQL Database
+```
+
+Railway runs the bot continuously, allowing the Discord bot to remain online without requiring a local development machine to stay running.
+
+The production service uses the following environment variables:
+
+```text
+DISCORD_TOKEN
+GUILD_ID
+DATABASE_URL
+```
+
+The production `DATABASE_URL` uses the Supabase **Session Pooler** connection on port `5432`, providing an IPv4-compatible connection for the Railway deployment.
+
+Railway runs the bot using:
+
+```bash
+python src/bot.py
+```
+
+Railway's service configuration supports overriding the automatically detected start command when the application's entry point is not in the default location.
+
+Environment variables are stored in Railway's service configuration and are injected into the running application at runtime rather than being committed to the repository.
 
 ---
 
@@ -272,6 +318,7 @@ The `projects` table stores information about organizational projects.
 
 ```text
 projects
+
 ├── id
 ├── name
 ├── description
@@ -285,6 +332,7 @@ The `tasks` table stores individual assignments.
 
 ```text
 tasks
+
 ├── id
 ├── title
 ├── description
@@ -305,6 +353,7 @@ The `hour_entries` table stores volunteer contributions.
 
 ```text
 hour_entries
+
 ├── id
 ├── user_id
 ├── task_id
@@ -333,7 +382,7 @@ The PostgreSQL database is initialized automatically when the bot starts. Requir
 
 The bot uses environment variables for sensitive configuration.
 
-Create a `.env` file containing:
+For local development, create a `.env` file containing:
 
 ```env
 DISCORD_TOKEN=your_discord_bot_token
@@ -344,6 +393,10 @@ DATABASE_URL=your_postgresql_connection_string
 The `.env` file must **never be committed to GitHub**.
 
 A `.env.example` file is included to document the required environment variables without exposing credentials.
+
+For local development, `DATABASE_URL` should point to the appropriate Supabase PostgreSQL connection.
+
+For production, the variables are configured directly in Railway.
 
 ---
 
@@ -385,9 +438,10 @@ Create a `.env` file:
 ```env
 DISCORD_TOKEN=your_discord_bot_token
 GUILD_ID=your_discord_server_id
+DATABASE_URL=your_postgresql_connection_string
 ```
 
-### 5. Run the Bot
+### 5. Run the Bot Locally
 
 ```bash
 python src/bot.py
@@ -403,6 +457,32 @@ On startup, the bot will:
 
 ---
 
+## Production Deployment
+
+The bot is currently deployed through Railway using the project's GitHub repository.
+
+The production deployment requires:
+
+```text
+DISCORD_TOKEN
+GUILD_ID
+DATABASE_URL
+```
+
+The service start command is:
+
+```bash
+python src/bot.py
+```
+
+After configuration, Railway builds the Python application, installs the dependencies listed in `requirements.txt`, and runs the bot as a persistent service. Railway supports automatically detecting build/start commands as well as manually overriding them when necessary.
+
+When environment variables are changed, Railway stages the changes and requires them to be deployed before they become active in the running service.
+
+Production deployments can therefore run independently of a developer's local machine.
+
+---
+
 ## Development Workflow
 
 Development follows a feature-branch and pull-request workflow.
@@ -410,12 +490,12 @@ Development follows a feature-branch and pull-request workflow.
 ```text
                          main
                           │
-             ┌────────────┼────────────┐
-             │            │            │
-             ▼            ▼            ▼
-       feature/tasks  feature/projects  feature/hours
-             │            │            │
-             └────────────┼────────────┘
+            ┌─────────────┼─────────────┐
+            │             │             │
+            ▼             ▼             ▼
+      feature/tasks  feature/projects  feature/hours
+            │             │             │
+            └─────────────┼─────────────┘
                           │
                           ▼
                      Pull Request
@@ -449,12 +529,13 @@ Open a pull request against `main` when the feature is ready for review.
 
 ### Development Guidelines
 
-- Keep changes focused on the feature being implemented.
-- Test commands locally before opening a pull request.
-- Use descriptive commit messages.
-- Avoid unnecessary modifications to shared architecture.
-- Review pull requests before merging.
-- Keep sensitive configuration out of version control.
+* Keep changes focused on the feature being implemented.
+* Test commands locally before opening a pull request.
+* Use descriptive commit messages.
+* Avoid unnecessary modifications to shared architecture.
+* Review pull requests before merging.
+* Keep sensitive configuration out of version control.
+* Do not commit `.env` or other files containing credentials.
 
 ---
 
@@ -497,22 +578,22 @@ The core administrative workflow is implemented, but the system can continue to 
 
 Potential future improvements include:
 
-- [ ] Rich Discord embeds
-- [ ] Interactive buttons and dropdowns
-- [ ] Task filtering and search
-- [ ] Project dashboards
-- [ ] Deadline reminders
-- [ ] Overdue task detection
-- [ ] Task statistics
-- [ ] Volunteer-hour approval workflow
-- [ ] Volunteer-hour summaries
-- [ ] Project progress summaries
-- [ ] More granular administrative permissions
-- [ ] Automated notifications
-- [ ] Recurring tasks
-- [ ] Reporting and analytics
-- [ ] Exportable volunteer-hour reports
-- [ ] Automated testing
+* [ ] Rich Discord embeds
+* [ ] Interactive buttons and dropdowns
+* [ ] Task filtering and search
+* [ ] Project dashboards
+* [ ] Deadline reminders
+* [ ] Overdue task detection
+* [ ] Task statistics
+* [ ] Volunteer-hour approval workflow
+* [ ] Volunteer-hour summaries
+* [ ] Project progress summaries
+* [ ] More granular administrative permissions
+* [ ] Automated notifications
+* [ ] Recurring tasks
+* [ ] Reporting and analytics
+* [ ] Exportable volunteer-hour reports
+* [ ] Automated testing
 
 ---
 
@@ -547,7 +628,7 @@ the Admin Bot provides a centralized workflow:
           │              │              │
           └──────────────┼──────────────┘
                          │
-                     Completion
+                    Completion
                          │
                    Volunteer Hours
                          │
@@ -560,18 +641,21 @@ The system is intended to scale alongside TMAS Academy's projects, contributors,
 
 ## Project Status
 
-**Status: Core Functionality Complete**
+**Status: Core Functionality Complete — Deployed to Production**
 
 The Admin Bot currently provides the core functionality required for:
 
-- Project management
-- Task management
-- Task assignment
-- Task status tracking
-- Task completion
-- Deadline and priority tracking
-- Volunteer-hour tracking
-- Persistent PostgreSQL storage through Supabase
+* Project management
+* Task management
+* Task assignment
+* Task status tracking
+* Task completion
+* Deadline and priority tracking
+* Volunteer-hour tracking
+* Persistent PostgreSQL storage through Supabase
+* Production hosting through Railway
+
+The bot is currently deployed as a persistent production service and can operate independently of a developer's local machine.
 
 The architecture is now in a stable state for continued feature development and future improvements.
 
