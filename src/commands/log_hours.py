@@ -10,12 +10,10 @@ FileInfo : This file contains the command for logging volunteer
 
 from typing import Optional
 from datetime import datetime
-
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 class LogHours(commands.Cog):
 
@@ -64,23 +62,23 @@ class LogHours(commands.Cog):
             )
             return
 
-        async with aiosqlite.connect(DATABASE_PATH) as db:
+        pool = get_pool()
+
+        async with pool.acquire() as db:
             project_name = None
             task_title = None
 
             if task_id is not None:
-                cursor = await db.execute(
+                task = await db.fetchrow(
                     """
                     SELECT tasks.title, tasks.project_id, projects.name
                     FROM tasks
                     JOIN projects
                         ON tasks.project_id = projects.id
-                    WHERE tasks.id = ?
+                    WHERE tasks.id = $1
                     """,
-                    (task_id,)
+                    task_id
                 )
-
-                task = await cursor.fetchone()
 
                 if task is None:
                     await interaction.response.send_message(
@@ -88,7 +86,9 @@ class LogHours(commands.Cog):
                     )
                     return
 
-                task_title, task_project_id, task_project_name = task
+                task_title = task["title"]
+                task_project_id = task["project_id"]
+                task_project_name = task["name"]
 
                 if project_id is not None and project_id != task_project_id:
                     await interaction.response.send_message(
@@ -101,16 +101,14 @@ class LogHours(commands.Cog):
                 project_name = task_project_name
 
             else:
-                cursor = await db.execute(
+                project = await db.fetchrow(
                     """
                     SELECT name
                     FROM projects
-                    WHERE id = ?
+                    WHERE id = $1
                     """,
-                    (project_id,)
+                    project_id
                 )
-
-                project = await cursor.fetchone()
 
                 if project is None:
                     await interaction.response.send_message(
@@ -118,11 +116,11 @@ class LogHours(commands.Cog):
                     )
                     return
 
-                project_name = project[0]
+                project_name = project["name"]
 
             # Volunteer hours stay in hour_entries. A task's
             # estimated_hours column is left unchanged.
-            cursor = await db.execute(
+            entry_id = await db.fetchval(
                 """
                 INSERT INTO hour_entries (
                     user_id,
@@ -132,21 +130,16 @@ class LogHours(commands.Cog):
                     description,
                     date
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id
                 """,
-                (
-                    interaction.user.id,
-                    task_id,
-                    project_id,
-                    hours,
-                    description,
-                    date
-                )
+                interaction.user.id,
+                task_id,
+                project_id,
+                hours,
+                description,
+                date
             )
-
-            entry_id = cursor.lastrowid
-
-            await db.commit()
 
         task_line = task_title if task_title is not None else "None"
 
@@ -159,7 +152,6 @@ class LogHours(commands.Cog):
             f"**Project:** {project_name}\n"
             f"**Task:** {task_line}"
         )
-
 
 async def setup(bot):
     await bot.add_cog(LogHours(bot))

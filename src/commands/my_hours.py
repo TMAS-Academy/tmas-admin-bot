@@ -10,11 +10,9 @@ FileInfo : This file contains the command for viewing a user's
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 DISCORD_MESSAGE_LIMIT = 2000
-
 
 def format_hours(hours):
     rounded = round(float(hours), 2)
@@ -23,7 +21,6 @@ def format_hours(hours):
         return str(int(rounded))
 
     return f"{rounded:.2f}".rstrip("0").rstrip(".")
-
 
 class MyHours(commands.Cog):
 
@@ -38,8 +35,10 @@ class MyHours(commands.Cog):
         self,
         interaction: discord.Interaction
     ):
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute(
+        pool = get_pool()
+
+        async with pool.acquire() as db:
+            project_totals = await db.fetch(
                 """
                 SELECT
                     projects.name,
@@ -47,14 +46,12 @@ class MyHours(commands.Cog):
                 FROM hour_entries
                 LEFT JOIN projects
                     ON hour_entries.project_id = projects.id
-                WHERE hour_entries.user_id = ?
+                WHERE hour_entries.user_id = $1
                 GROUP BY hour_entries.project_id, projects.name
                 ORDER BY projects.name IS NULL, projects.name
                 """,
-                (interaction.user.id,)
+                interaction.user.id
             )
-
-            project_totals = await cursor.fetchall()
 
         if not project_totals:
             await interaction.response.send_message(
@@ -93,7 +90,6 @@ class MyHours(commands.Cog):
 
         for chunk in chunks[1:]:
             await interaction.followup.send(chunk)
-
 
 async def setup(bot):
     await bot.add_cog(MyHours(bot))

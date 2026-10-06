@@ -1,6 +1,5 @@
 """
 FileName : complete_task.py
-
 FileInfo : This file contains the command for completing a specific
            task in the TMAS Academy Admin Bot.
 
@@ -11,8 +10,7 @@ FileInfo : This file contains the command for completing a specific
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 class CompleteTask(commands.Cog):
 
@@ -31,18 +29,18 @@ class CompleteTask(commands.Cog):
         interaction: discord.Interaction,
         task_id: int
     ):
-        async with aiosqlite.connect(DATABASE_PATH) as db:
+        pool = get_pool()
 
-            cursor = await db.execute(
+        async with pool.acquire() as db:
+
+            task = await db.fetchrow(
                 """
                 SELECT title, status
                 FROM tasks
-                WHERE id = ?
+                WHERE id = $1
                 """,
-                (task_id,)
+                task_id
             )
-
-            task = await cursor.fetchone()
 
             if task is None:
                 await interaction.response.send_message(
@@ -50,7 +48,8 @@ class CompleteTask(commands.Cog):
                 )
                 return
 
-            title, status = task
+            title = task["title"]
+            status = task["status"]
 
             if status == "Completed":
                 await interaction.response.send_message(
@@ -63,12 +62,10 @@ class CompleteTask(commands.Cog):
                 UPDATE tasks
                 SET status = 'Completed',
                     completed_at = CURRENT_TIMESTAMP
-                WHERE id = ?
+                WHERE id = $1
                 """,
-                (task_id,)
+                task_id
             )
-
-            await db.commit()
 
         await interaction.response.send_message(
             f"✅ Task #{task_id} **{title}** has been completed."

@@ -11,11 +11,9 @@ FileInfo : This file contains the command for viewing tasks
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 DISCORD_MESSAGE_LIMIT = 2000
-
 
 class MyTasks(commands.Cog):
 
@@ -30,8 +28,10 @@ class MyTasks(commands.Cog):
         self,
         interaction: discord.Interaction
     ):
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute(
+        pool = get_pool()
+
+        async with pool.acquire() as db:
+            tasks = await db.fetch(
                 """
                 SELECT
                     tasks.id,
@@ -43,7 +43,7 @@ class MyTasks(commands.Cog):
                 FROM tasks
                 JOIN projects
                     ON tasks.project_id = projects.id
-                WHERE tasks.assignee_id = ?
+                WHERE tasks.assignee_id = $1
                 ORDER BY
                     CASE tasks.priority
                         WHEN 'High' THEN 1
@@ -55,10 +55,8 @@ class MyTasks(commands.Cog):
                     tasks.deadline,
                     tasks.id
                 """,
-                (interaction.user.id,)
+                interaction.user.id
             )
-
-            tasks = await cursor.fetchall()
 
         if not tasks:
             await interaction.response.send_message(
@@ -96,7 +94,6 @@ class MyTasks(commands.Cog):
 
         for chunk in chunks[1:]:
             await interaction.followup.send(chunk)
-
 
 async def setup(bot):
     await bot.add_cog(MyTasks(bot))

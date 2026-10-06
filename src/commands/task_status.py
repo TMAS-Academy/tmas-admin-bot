@@ -10,8 +10,7 @@ FileInfo : This file contains the command for updating the status
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 class TaskStatus(commands.Cog):
 
@@ -46,17 +45,17 @@ class TaskStatus(commands.Cog):
             )
             return
 
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute(
+        pool = get_pool()
+
+        async with pool.acquire() as db:
+            task = await db.fetchrow(
                 """
                 SELECT title
                 FROM tasks
-                WHERE id = ?
+                WHERE id = $1
                 """,
-                (task_id,)
+                task_id
             )
-
-            task = await cursor.fetchone()
 
             if task is None:
                 await interaction.response.send_message(
@@ -67,19 +66,17 @@ class TaskStatus(commands.Cog):
             await db.execute(
                 """
                 UPDATE tasks
-                SET status = ?
-                WHERE id = ?
+                SET status = $1
+                WHERE id = $2
                 """,
-                (status, task_id)
+                status,
+                task_id
             )
 
-            await db.commit()
-
         await interaction.response.send_message(
-            f"✅ Task #{task_id} **{task[0]}** status updated to "
+            f"✅ Task #{task_id} **{task['title']}** status updated to "
             f"**{status}**."
         )
-
 
 async def setup(bot):
     await bot.add_cog(TaskStatus(bot))

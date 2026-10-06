@@ -10,11 +10,9 @@ FileInfo : This file contains the command for listing projects
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 DISCORD_MESSAGE_LIMIT = 2000
-
 
 class Projects(commands.Cog):
 
@@ -29,16 +27,16 @@ class Projects(commands.Cog):
         self,
         interaction: discord.Interaction
     ):
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute(
+        pool = get_pool()
+
+        async with pool.acquire() as db:
+            projects = await db.fetch(
                 """
                 SELECT id, name, description
                 FROM projects
                 ORDER BY id
                 """
             )
-
-            projects = await cursor.fetchall()
 
         if not projects:
             await interaction.response.send_message(
@@ -73,7 +71,6 @@ class Projects(commands.Cog):
 
         for chunk in chunks[1:]:
             await interaction.followup.send(chunk)
-
 
 async def setup(bot):
     await bot.add_cog(Projects(bot))

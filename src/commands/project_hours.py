@@ -11,11 +11,9 @@ FileInfo : This file contains the command for viewing volunteer
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 DISCORD_MESSAGE_LIMIT = 2000
-
 
 def format_hours(hours):
     rounded = round(float(hours), 2)
@@ -43,23 +41,23 @@ class ProjectHours(commands.Cog):
         interaction: discord.Interaction,
         project_id: int
     ):
-        if not interaction.user_guild_permissions.manage_guild:
-            await interaction.response_send_message(
+        if not interaction.user.guild_permissions.manage_guild:
+            await interaction.response.send_message(
                 "❌ You do not have permission to view project hours."
             )
             return
-        
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute(
+
+        pool = get_pool()
+
+        async with pool.acquire() as db:
+            project = await db.fetchrow(
                 """
                 SELECT name
                 FROM projects
-                WHERE id = ?
+                WHERE id = $1
                 """,
-                (project_id,)
+                project_id
             )
-
-            project = await cursor.fetchone()
 
             if project is None:
                 await interaction.response.send_message(
@@ -67,20 +65,18 @@ class ProjectHours(commands.Cog):
                 )
                 return
 
-            project_name = project[0]
+            project_name = project["name"]
 
-            cursor = await db.execute(
+            user_totals = await db.fetch(
                 """
                 SELECT user_id, SUM(hours)
                 FROM hour_entries
-                WHERE project_id = ?
+                WHERE project_id = $1
                 GROUP BY user_id
                 ORDER BY SUM(hours) DESC, user_id
                 """,
-                (project_id,)
+                project_id
             )
-
-            user_totals = await cursor.fetchall()
 
         if not user_totals:
             await interaction.response.send_message(
@@ -121,7 +117,6 @@ class ProjectHours(commands.Cog):
 
         for chunk in chunks[1:]:
             await interaction.followup.send(chunk)
-
 
 async def setup(bot):
     await bot.add_cog(ProjectHours(bot))

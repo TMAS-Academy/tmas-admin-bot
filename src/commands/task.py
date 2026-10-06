@@ -10,8 +10,7 @@ FileInfo : This file contains the command for viewing the details
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 class Task(commands.Cog):
 
@@ -27,8 +26,10 @@ class Task(commands.Cog):
         interaction: discord.Interaction,
         task_id: int
     ):
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute(
+        pool = get_pool()
+
+        async with pool.acquire() as db:
+            task = await db.fetchrow(
                 """
                 SELECT
                     tasks.id,
@@ -46,12 +47,10 @@ class Task(commands.Cog):
                 FROM tasks
                 JOIN projects
                     ON tasks.project_id = projects.id
-                WHERE tasks.id = ?
+                WHERE tasks.id = $1
                 """,
-                (task_id,)
+                task_id
             )
-
-            task = await cursor.fetchone()
 
         if task is None:
             await interaction.response.send_message(
@@ -59,35 +58,20 @@ class Task(commands.Cog):
             )
             return
 
-        (
-            task_id,
-            title,
-            description,
-            assignee_id,
-            project_name,
-            status,
-            priority,
-            deadline,
-            estimated_hours,
-            created_by,
-            created_at,
-            completed_at
-        ) = task
-
         await interaction.response.send_message(
-            f"**Task #{task_id}**\n"
-            f"**Title:** {title}\n"
-            f"**Description:** {description}\n"
-            f"**Project:** {project_name}\n"
-            f"**Assignee:** <@{assignee_id}>\n"
-            f"**Status:** {status}\n"
-            f"**Priority:** {priority}\n"
-            f"**Deadline:** {deadline}\n"
+            f"**Task #{task['id']}**\n"
+            f"**Title:** {task['title']}\n"
+            f"**Description:** {task['description']}\n"
+            f"**Project:** {task['name']}\n"
+            f"**Assignee:** <@{task['assignee_id']}>\n"
+            f"**Status:** {task['status']}\n"
+            f"**Priority:** {task['priority']}\n"
+            f"**Deadline:** {task['deadline']}\n"
             f"**Estimated Hours:** "
-            f"{estimated_hours if estimated_hours is not None else 'None'}\n"
-            f"**Created By:** <@{created_by}>\n"
-            f"**Created At:** {created_at}\n"
-            f"**Completed At:** {completed_at or 'Not completed'}"
+            f"{task['estimated_hours'] if task['estimated_hours'] is not None else 'None'}\n"
+            f"**Created By:** <@{task['created_by']}>\n"
+            f"**Created At:** {task['created_at']}\n"
+            f"**Completed At:** {task['completed_at'] or 'Not completed'}"
         )
 
 async def setup(bot):

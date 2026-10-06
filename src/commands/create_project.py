@@ -10,9 +10,7 @@ FileInfo : This file contains the command for creating a new
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
-
+from database import get_pool
 
 class CreateProject(commands.Cog):
 
@@ -29,22 +27,19 @@ class CreateProject(commands.Cog):
         name: str,
         description: str
     ):
-        async with aiosqlite.connect(DATABASE_PATH) as db:
-            cursor = await db.execute(
+        pool = get_pool()
+
+        async with pool.acquire() as db:
+            project_id = await db.fetchval(
                 """
                 INSERT INTO projects (name, description, created_by)
-                VALUES (?, ?, ?)
+                VALUES ($1, $2, $3)
+                RETURNING id
                 """,
-                (
-                    name,
-                    description,
-                    interaction.user.id
-                )
+                name,
+                description,
+                interaction.user.id
             )
-
-            project_id = cursor.lastrowid
-
-            await db.commit()
 
         await interaction.response.send_message(
             f"**Project Created**\n"
@@ -52,7 +47,6 @@ class CreateProject(commands.Cog):
             f"**Name:** {name}\n"
             f"**Description:** {description}"
         )
-
 
 async def setup(bot):
     await bot.add_cog(CreateProject(bot))

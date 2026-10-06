@@ -7,8 +7,7 @@ FileInfo : This file contains the task creation logic and
 import discord
 from discord import app_commands
 from discord.ext import commands
-import aiosqlite
-from database import DATABASE_PATH
+from database import get_pool
 
 class CreateTask(commands.Cog):
 
@@ -28,19 +27,19 @@ class CreateTask(commands.Cog):
         assignee: discord.Member,
         deadline: str
     ):
-        async with aiosqlite.connect(DATABASE_PATH) as db:
+        pool = get_pool()
+
+        async with pool.acquire() as db:
 
             # Make sure the project exists
-            cursor = await db.execute(
+            project = await db.fetchrow(
                 """
                 SELECT id, name
                 FROM projects
-                WHERE id = ?
+                WHERE id = $1
                 """,
-                (project_id,)
+                project_id
             )
-
-            project = await cursor.fetchone()
 
             if project is None:
                 await interaction.response.send_message(
@@ -49,7 +48,7 @@ class CreateTask(commands.Cog):
                 return
 
             # Create the task
-            cursor = await db.execute(
+            task_id = await db.fetchval(
                 """
                 INSERT INTO tasks (
                     title,
@@ -59,27 +58,22 @@ class CreateTask(commands.Cog):
                     deadline,
                     created_by
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id
                 """,
-                (
-                    title,
-                    description,
-                    assignee.id,
-                    project_id,
-                    deadline,
-                    interaction.user.id
-                )
+                title,
+                description,
+                assignee.id,
+                project_id,
+                deadline,
+                interaction.user.id
             )
-
-            task_id = cursor.lastrowid
-
-            await db.commit()
 
         await interaction.response.send_message(
             f"**Task Created**\n"
             f"**ID:** {task_id}\n"
             f"**Title:** {title}\n"
-            f"**Project:** {project[1]}\n"
+            f"**Project:** {project['name']}\n"
             f"**Assignee:** {assignee.mention}\n"
             f"**Deadline:** {deadline}"
         )
