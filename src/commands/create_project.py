@@ -10,7 +10,9 @@ FileInfo : This file contains the command for creating a new
 import discord
 from discord import app_commands
 from discord.ext import commands
+
 from database import get_pool
+
 
 class CreateProject(commands.Cog):
 

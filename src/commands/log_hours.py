@@ -8,12 +8,14 @@ FileInfo : This file contains the command for logging volunteer
            the relevant project or task.
 """
 
-from typing import Optional
 from datetime import datetime
+
 import discord
 from discord import app_commands
 from discord.ext import commands
+
 from database import get_pool
+
 
 class LogHours(commands.Cog):
 
@@ -37,8 +39,8 @@ class LogHours(commands.Cog):
         hours: float,
         date: str,
         description: str,
-        project_id: Optional[int] = None,
-        task_id: Optional[int] = None
+        project_id: int | None = None,
+        task_id: int | None = None
     ):
         if hours <= 0:
             await interaction.response.send_message(

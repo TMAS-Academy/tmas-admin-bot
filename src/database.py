@@ -4,13 +4,13 @@ FileInfo : This file contains the database connection and
            initialization logic for the TMAS Academy Admin Bot.
 """
 
-import os
 import asyncpg
 from dotenv import load_dotenv
 
 load_dotenv()
 
 from config import DATABASE_URL
+
 _pool = None
 
 async def initialize_database():
